@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Compoany App To do",
+    "slug": "CompanyApp",
+    "privacy": "public",
+    "sdkVersion": "34.0.0",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "splash": {
+     "resizeMode": "contain",
+      "backgroundColor": "#F25E00"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.depixed.company",
+      "androidStatusBar": {
+       
+        "barStyle": "light-content",
+    
+      
+        "backgroundColor": "#F25E00"
+      }
+    }
+    
+  }
+}
