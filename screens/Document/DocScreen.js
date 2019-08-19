@@ -6,7 +6,8 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,FlatList,AsyncStorage,NetInfo
+  View,FlatList,AsyncStorage,NetInfo,
+  RefreshControl
 } from 'react-native';
 
 import { Container, Content, Card, Item,Picker,Form,Icon,Button,Title, CardItem, Left, Right, Body } from 'native-base';
@@ -16,6 +17,7 @@ import HomeStyle from './DocStyle';
 import SnackBar from 'rn-snackbar';
 import Global from '../../constants/Global';
 import * as DocumentPicker from 'expo-document-picker';
+import FAB from 'react-native-fab';
 
 export default class DocScreen extends React.Component {
 
@@ -30,7 +32,10 @@ export default class DocScreen extends React.Component {
                     selected:''
 
                 }
+                
+                // this._httpUpload = this._httpUpload.bind(this);
                 this._httpUpload()
+               
   }  
 
   static navigationOptions = {
@@ -67,17 +72,19 @@ export default class DocScreen extends React.Component {
              .then((response) =>response.json() )   
              .then(async (responseJson) => {
              
-               console.log("Data",responseJson)
+              
                if(responseJson.success){
               
                let data =responseJson.data;
-               console.log("Data",data)
-                this.setState({documentArray:data.document});
+            
+                this.setState({documentArray:data.document,isLoading:false});
                 this.render();
                }
                else{
                  console.log(responseJson);
                  SnackBar.show('Something Wrong.... Retry', {  duration: 8000 ,position: 'top' },)
+                 this.setState({isLoading:false});
+
    
                 
                }
@@ -99,21 +106,45 @@ export default class DocScreen extends React.Component {
   
 
    _renderItem=({item})=>{
-     console.log("Item ",item);
-     return(<CardItem>
+    //  console.log("Item ",item);
+
+    let color= '#fc9942';
+    item.status == '1'?
+                   color= '#298a25'
+               :
+                item.status == '2'?
+                
+                  color= '#ff0000'
+          
+                :
+                color= '#fc9942'
+          
+
+     return(
+          <CardItem>
               <Left>
-                <Text>{item.image.name}</Text>
+                <Text style={{fontSize: 20, color: color}}>{item.image.name}</Text>
               </Left>
               <Body>
-                <Text>{item.type}</Text>
+                <Text style={{fontSize: 20, color: color}}>{item.type}</Text>
               </Body>
               <Right>
                 {
-                  item.status?
-                <Icon name={"ios-checkmark-circle-outline"} color={"#298a25"} fontSize={20} />:
-                <Icon name={"ios-checkmark"} color={"#ff2f00"} fontSize={20} />
-              }</Right>
-           </CardItem>)
+                  item.status == '1'?
+                  <Icon ios='ios-checkmark-circle-outline' android="ios-checkmark-circle-outline" style={{fontSize: 20, color: '#298a25'}}/>
+               :
+                item.status == '2'?
+                  <Icon ios='ios-close-circle-outline' android="ios-close-circle-outline" style={{fontSize: 20, color: '#ff0000'}}/>
+          
+                :
+                <Icon ios='ios-timer' android="ios-timer" style={{fontSize: 20, color: '#fc9942'}}/>
+          
+               
+
+                }
+              </Right>
+
+          </CardItem>)
    }
 
 
@@ -139,12 +170,18 @@ export default class DocScreen extends React.Component {
             renderItem={this._renderItem}
             keyExtractor={(item,index)=>index+""}
             extraData={this.state.documentUploadArray}
+            onRefresh={()=>{this._httpUpload()}}
+            refreshing={this.state.isLoading}
+            // refreshControl={ <RefreshControl
+            //                     refreshing={this.state.isLoading}
+            //                     onRefresh={this._httpUpload}
+            //                     />}
           />
          
         </Card>)
         }
         
-
+        {/* <FAB buttonColor="red" iconTextColor="#FFFFFF" onClickAction={() => {console.log("FAB pressed")}} visible={true} iconTextComponent={<Icon name="ios-refresh"/>} /> */}
 
       </Content>
        

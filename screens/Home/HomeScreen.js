@@ -11,7 +11,7 @@ import {
   NetInfo
 } from 'react-native';
 
-import { Container, Content, Card, Item,Picker,Form,Icon,Button,Title, CardItem, Left, Right } from 'native-base';
+import { Container, Content, Card, Item,Picker,Form,Icon,Button,Title, CardItem, Left, Right, Body } from 'native-base';
 import Headers from '../Shared/Header/Headers';
 import HomeStyle from './HomeStyle';
 import * as DocumentPicker from 'expo-document-picker';
@@ -26,7 +26,8 @@ export default class HomeScreen extends React.Component {
     this.state={
                     documentArray:[{value:'sales',label:'Sales'},{value:'Purchase',label:'Purchase'},{value:'expenses',label:'Expenses'}],
                     documentUploadArray:[],
-                    selected:''
+                    selected:'',
+                    flag:false
 
                 }
   }  
@@ -52,8 +53,8 @@ export default class HomeScreen extends React.Component {
               let type = name.split(".");
               type = type[type.length-1]
               
-              temp.push({doc:{ type:'application/*', uri, name, size },type:Doctype});
-              console.log("Temp : ",temp)
+              temp.push({doc:{ type:'application/*', uri, name, size },type:Doctype,index:temp.length});
+              // console.log("Temp : ",temp)
               this.setState({documentUploadArray:temp});
               this.render();
 
@@ -73,6 +74,16 @@ export default class HomeScreen extends React.Component {
     
   _remove =async (item)=>{
     
+      // console.log("Item to remove : ",item);
+      let temp = [];
+      this.state.documentUploadArray.forEach(element=>{
+        if(element.index != item.index)
+          temp.push(element);
+      })
+
+      console.log("Temp : ",temp);
+      this.setState({documentUploadArray:temp})
+
      
   }
 
@@ -82,8 +93,11 @@ export default class HomeScreen extends React.Component {
               <Left>
                 <Text>{item.doc.name}</Text>
               </Left>
+              <Body>
+              <Text>{item.type}</Text>
+              </Body>
               <Right>
-              <Button block style={HomeStyle.btn} onPress={()=>{}}><Title>REMOVE</Title></Button>
+              <Button block style={HomeStyle.btn} onPress={()=>{this._remove(item)}}><Title>REMOVE</Title></Button>
               </Right>
            </CardItem>)
    }
@@ -96,8 +110,10 @@ export default class HomeScreen extends React.Component {
 
           this.state.documentUploadArray.forEach(async element => {
 
-            // console.log("Element",element);
-          await  this. _httpUpload(element,JSON.parse(user));
+              // console.log("Element",element);
+              await  this. _httpUpload(element,JSON.parse(user));
+           
+           
 
           });
         }
@@ -117,6 +133,7 @@ export default class HomeScreen extends React.Component {
       _httpUpload(data,user)
       {
         let fv = new FormData();
+        this.setState({flag:false,isLoading:true})
 
         fv.append('type',data.type+"");
         fv.append('document',data.doc);
@@ -148,21 +165,19 @@ export default class HomeScreen extends React.Component {
               
                 console.log("Data",responseJson)
                 if(responseJson.success){
-               
-                let data =responseJson.data;
-                console.log("Data",data)
-                  try 
-                  {
-                     
-                      
-                  } catch (error) {
-                    console.warn("Error in Signup : ",error);
-                  }
+                  this._remove(data);
+                
+                
+                this.setState({flag:true,isLoading:false})
+
+                if(this.state.documentUploadArray == 0)
+                SnackBar.show('Document Upload Successfully !', { backgroundColor: '#06910d',  duration: 8000 ,position: 'top' },)
+
                 }
                 else{
                   console.log(responseJson);
                   SnackBar.show('Something Wrong.... Retry', {  duration: 8000 ,position: 'top' },)
-    
+                  this.setState({flag:false,isLoading:false})
                  
                 }
             })
@@ -171,6 +186,7 @@ export default class HomeScreen extends React.Component {
             //  Global.MSG("Server Error")
              this.setState({isLoading:false})
              console.log('on error fetching:'+error);
+             this.setState({flag:false,isLoading:false})
              
            });
           
@@ -186,6 +202,7 @@ export default class HomeScreen extends React.Component {
   
   render()
   {
+    console.log("Reender");
     const {documentUploadArray} = this.state
     let serviceItems = this.state.documentArray.map( (s, i) => {
       return <Picker.Item key={i} value={s.value} label={s.label} />
@@ -219,7 +236,7 @@ export default class HomeScreen extends React.Component {
             data= {this.state.documentUploadArray}
             renderItem={this._renderItem}
             keyExtractor={(item,index)=>index+""}
-            extraData={this.state.documentUploadArray}
+            extraData={this.state}
           />
           <Button block style={HomeStyle.btn} onPress={()=>{this._upload()}}><Title>UPLOAD</Title></Button>
         </Card>)
@@ -236,93 +253,3 @@ export default class HomeScreen extends React.Component {
 }
 
 
-
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  developmentModeText: {
-    marginBottom: 20,
-    color: 'rgba(0,0,0,0.4)',
-    fontSize: 14,
-    lineHeight: 19,
-    textAlign: 'center',
-  },
-  contentContainer: {
-    paddingTop: 30,
-  },
-  welcomeContainer: {
-    alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  welcomeImage: {
-    width: 100,
-    height: 80,
-    resizeMode: 'contain',
-    marginTop: 3,
-    marginLeft: -10,
-  },
-  getStartedContainer: {
-    alignItems: 'center',
-    marginHorizontal: 50,
-  },
-  homeScreenFilename: {
-    marginVertical: 7,
-  },
-  codeHighlightText: {
-    color: 'rgba(96,100,109, 0.8)',
-  },
-  codeHighlightContainer: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    borderRadius: 3,
-    paddingHorizontal: 4,
-  },
-  getStartedText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    lineHeight: 24,
-    textAlign: 'center',
-  },
-  tabBarInfoContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'black',
-        shadowOffset: { width: 0, height: -3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 20,
-      },
-    }),
-    alignItems: 'center',
-    backgroundColor: '#fbfbfb',
-    paddingVertical: 20,
-  },
-  tabBarInfoText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    textAlign: 'center',
-  },
-  navigationFilename: {
-    marginTop: 5,
-  },
-  helpContainer: {
-    marginTop: 15,
-    alignItems: 'center',
-  },
-  helpLink: {
-    paddingVertical: 15,
-  },
-  helpLinkText: {
-    fontSize: 14,
-    color: '#2e78b7',
-  },
-});
