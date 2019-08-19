@@ -15,6 +15,7 @@ class Check extends React.Component
 
   _bootstrapAsync = async () => {
       console.log("In token ")
+      // await AsyncStorage.removeItem('token'); 
       const userToken =await AsyncStorage.getItem('token'); 
 
       console.log("Token Get : ",userToken)

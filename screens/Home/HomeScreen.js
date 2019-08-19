@@ -6,13 +6,17 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,FlatList
+  View,FlatList,
+  AsyncStorage,
+  NetInfo
 } from 'react-native';
 
 import { Container, Content, Card, Item,Picker,Form,Icon,Button,Title, CardItem, Left, Right } from 'native-base';
 import Headers from '../Shared/Header/Headers';
 import HomeStyle from './HomeStyle';
 import * as DocumentPicker from 'expo-document-picker';
+import SnackBar from 'rn-snackbar';
+import Global from '../../constants/Global';
 
 export default class HomeScreen extends React.Component {
 
@@ -67,10 +71,9 @@ export default class HomeScreen extends React.Component {
         
     }
     
-  _remove = (item)=>{
+  _remove =async (item)=>{
     
-
-
+     
   }
 
    _renderItem=({item})=>{
@@ -85,10 +88,97 @@ export default class HomeScreen extends React.Component {
            </CardItem>)
    }
 
-   _upload()
+  async _upload()
    {
+        try {
+          let user = await AsyncStorage.getItem('user');
+          if(user!=null){
+
+          this.state.documentUploadArray.forEach(async element => {
+
+            // console.log("Element",element);
+          await  this. _httpUpload(element,JSON.parse(user));
+
+          });
+        }
+        else
+        {
+          console.log("USer not found : ",user)
+        }
+
+        } catch (error) {
+          
+        }
+        
 
    }
+
+      /***Http to upload file on the server  */
+      _httpUpload(data,user)
+      {
+        let fv = new FormData();
+
+        fv.append('type',data.type+"");
+        fv.append('document',data.doc);
+        fv.append('userID',user.id);
+
+        NetInfo.getConnectionInfo().then((connectionInfo) => {
+          this.setState({isLoading:true})
+          if(connectionInfo.type == 'none'){
+            console.log('no internet ');
+           
+          
+            SnackBar.show('No Internet..', { isStatic: true,position: 'top' },)
+            this.setState({isLoading:false})
+            return null;
+          }else{       
+            console.log("Data to hit the saerver With DAta  ",fv);
+           return fetch(Global.API_URL+'document-upload', {
+              method: 'POST',
+              headers: {
+                  'Accept': 'application/json',   
+                  'Content-Type':'multipart/form-data',
+                  'Authorization':'Bearer '+user.token
+
+                },
+                body: fv
+              })
+              .then((response) =>response.json() )   
+              .then(async (responseJson) => {
+              
+                console.log("Data",responseJson)
+                if(responseJson.success){
+               
+                let data =responseJson.data;
+                console.log("Data",data)
+                  try 
+                  {
+                     
+                      
+                  } catch (error) {
+                    console.warn("Error in Signup : ",error);
+                  }
+                }
+                else{
+                  console.log(responseJson);
+                  SnackBar.show('Something Wrong.... Retry', {  duration: 8000 ,position: 'top' },)
+    
+                 
+                }
+            })
+            .catch((error) => {
+              SnackBar.show('Server Error', {  duration: 8000 ,position: 'top' },)
+            //  Global.MSG("Server Error")
+             this.setState({isLoading:false})
+             console.log('on error fetching:'+error);
+             
+           });
+          
+           
+          }
+        });
+       
+      }
 
 
  

@@ -6,12 +6,15 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,FlatList
+  View,FlatList,AsyncStorage,NetInfo
 } from 'react-native';
 
 import { Container, Content, Card, Item,Picker,Form,Icon,Button,Title, CardItem, Left, Right, Body } from 'native-base';
 import Headers from '../Shared/Header/Headers';
 import HomeStyle from './DocStyle';
+
+import SnackBar from 'rn-snackbar';
+import Global from '../../constants/Global';
 import * as DocumentPicker from 'expo-document-picker';
 
 export default class DocScreen extends React.Component {
@@ -21,20 +24,77 @@ export default class DocScreen extends React.Component {
     super(props)
     this.state={
                     documentArray:[
-                                  {name:'sfds',type:'Documet',status:0},
-                                {name:'sdfs',type:'ID',status:1},
-                                {name:'rt',type:'Boo',status:1},
-                                {name:'sdf',type:'PDF',status:2}
+                                 
                               ],
                   
                     selected:''
 
                 }
+                this._httpUpload()
   }  
 
   static navigationOptions = {
     header: null
   }
+
+     /***Http to upload file on the server  */
+   async  _httpUpload()
+     {
+      let user = await AsyncStorage.getItem('user');
+      if(user!=null)
+          user = JSON.parse(user);
+       NetInfo.getConnectionInfo().then((connectionInfo) => {
+         this.setState({isLoading:true})
+         if(connectionInfo.type == 'none'){
+           console.log('no internet ');
+          
+         
+           SnackBar.show('No Internet..', { isStatic: true,position: 'top' },)
+           this.setState({isLoading:false})
+           return null;
+         }else{       
+          
+          return fetch(Global.API_URL+'document-get', {
+             method: 'POST',
+             headers: {
+                 'Accept': 'application/json',   
+                 'Content-Type':'application/json',
+                 'Authorization':'Bearer '+user.token
+
+               },
+               body: JSON.stringify({"userID":user.id})
+             })
+             .then((response) =>response.json() )   
+             .then(async (responseJson) => {
+             
+               console.log("Data",responseJson)
+               if(responseJson.success){
+              
+               let data =responseJson.data;
+               console.log("Data",data)
+                this.setState({documentArray:data.document});
+                this.render();
+               }
+               else{
+                 console.log(responseJson);
+                 SnackBar.show('Something Wrong.... Retry', {  duration: 8000 ,position: 'top' },)
+   
+                
+               }
+           })
+           .catch((error) => {
+             SnackBar.show('Server Error', {  duration: 8000 ,position: 'top' },)
+           //  Global.MSG("Server Error")
+            this.setState({isLoading:false})
+            console.log('on error fetching:'+error);
+            
+          });
+         
+          
+         }
+       });
+      
+     }
 
   
 
@@ -42,7 +102,7 @@ export default class DocScreen extends React.Component {
      console.log("Item ",item);
      return(<CardItem>
               <Left>
-                <Text>{item.name}</Text>
+                <Text>{item.image.name}</Text>
               </Left>
               <Body>
                 <Text>{item.type}</Text>
@@ -55,6 +115,8 @@ export default class DocScreen extends React.Component {
               }</Right>
            </CardItem>)
    }
+
+
 
 
  
@@ -92,94 +154,3 @@ export default class DocScreen extends React.Component {
 
 }
 
-
-
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  developmentModeText: {
-    marginBottom: 20,
-    color: 'rgba(0,0,0,0.4)',
-    fontSize: 14,
-    lineHeight: 19,
-    textAlign: 'center',
-  },
-  contentContainer: {
-    paddingTop: 30,
-  },
-  welcomeContainer: {
-    alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  welcomeImage: {
-    width: 100,
-    height: 80,
-    resizeMode: 'contain',
-    marginTop: 3,
-    marginLeft: -10,
-  },
-  getStartedContainer: {
-    alignItems: 'center',
-    marginHorizontal: 50,
-  },
-  homeScreenFilename: {
-    marginVertical: 7,
-  },
-  codeHighlightText: {
-    color: 'rgba(96,100,109, 0.8)',
-  },
-  codeHighlightContainer: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    borderRadius: 3,
-    paddingHorizontal: 4,
-  },
-  getStartedText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    lineHeight: 24,
-    textAlign: 'center',
-  },
-  tabBarInfoContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'black',
-        shadowOffset: { width: 0, height: -3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 20,
-      },
-    }),
-    alignItems: 'center',
-    backgroundColor: '#fbfbfb',
-    paddingVertical: 20,
-  },
-  tabBarInfoText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    textAlign: 'center',
-  },
-  navigationFilename: {
-    marginTop: 5,
-  },
-  helpContainer: {
-    marginTop: 15,
-    alignItems: 'center',
-  },
-  helpLink: {
-    paddingVertical: 15,
-  },
-  helpLinkText: {
-    fontSize: 14,
-    color: '#2e78b7',
-  },
-});

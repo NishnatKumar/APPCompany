@@ -1,8 +1,11 @@
 import React from 'react';
-import { StyleSheet,Text,KeyboardAvoidingView,AsyncStorage } from 'react-native';
+import { StyleSheet,Text,KeyboardAvoidingView,AsyncStorage,NetInfo } from 'react-native';
+// import Snackbar from 'react-native-snackbar';
+ import SnackBar from 'rn-snackbar';
 import { Container, Content, Item,Input,View, Button, Title, Card, Textarea } from 'native-base';
 import Headers from '../Shared/Header/Headers';
 import SignupStyle from './SignupStyle'
+import Global from '../../constants/Global';
 export default class SignUP extends React.Component{
 
   constructor(props) {
@@ -89,24 +92,77 @@ export default class SignUP extends React.Component{
       }
       else
       {
-        data={name:name,email:email,companyname:companyname,address:address};
+        data={name:name,email:email,company:companyname,address:address};
         console.log("Data to save : ",data);
-        this.setData();
+        this.setData(data);
       }
   }
 
 
+
   /**Http fetch */
 
-   async setData()
+
+
+   async setData(data)
     {
-      try 
-        {
-            await AsyncStorage.setItem('token',"helloopopopos");
-            this.props.navigation.navigate('Check');
-        } catch (error) {
-          console.warn("Error in Signup : ",error);
+      NetInfo.getConnectionInfo().then((connectionInfo) => {
+        this.setState({isLoading:true})
+        if(connectionInfo.type == 'none'){
+          console.log('no internet ');
+         
+        
+          SnackBar.show('No Internet..', { isStatic: true,position: 'top' },)
+          this.setState({isLoading:false})
+          return null;
+        }else{       
+        
+         return fetch(Global.API_URL+'register', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',   
+                'Content-Type':'application/json'   
+              },
+              body: JSON.stringify(data)
+            })
+            .then((response) =>response.json() )   
+            .then(async (responseJson) => {
+            
+            
+              if(responseJson.success){
+             
+              let data =responseJson.data
+                try 
+                {
+                    await AsyncStorage.setItem('token',data.token);
+                    await AsyncStorage.setItem('user',JSON.stringify(data));
+                    
+                } catch (error) {
+                  console.warn("Error in Signup : ",error);
+
+                  
+                }
+              }
+              else{
+                if(responseJson.msg == 'The email has already been taken.')
+                this.setState({isemailError:true,emailMessage:'The email has already been taken.'});
+                else
+                SnackBar.show(responseJson.msg, {  duration: 8000 ,position: 'top' },)
+               
+              }
+          })
+          .catch((error) => {
+            SnackBar.show('Server Error', {  duration: 8000 ,position: 'top' },)
+          //  Global.MSG("Server Error")
+           this.setState({isLoading:false})
+           console.log('on error fetching:'+error);
+           
+         });
+        
+         
         }
+      });
+     
     }
 
 

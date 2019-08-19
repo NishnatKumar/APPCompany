@@ -26,14 +26,15 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.depixed.company",
-      "androidStatusBar": {
-       
-        "barStyle": "light-content",
+      "package": "com.depixed.company"
     
-      
-        "backgroundColor": "#F25E00"
-      }
+    },
+    "androidStatusBar": {
+       
+      "barStyle": "light-content",
+  
+    
+      "backgroundColor": "#F25E00"
     }
     
   }
