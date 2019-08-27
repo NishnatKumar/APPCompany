@@ -6,6 +6,8 @@ import { Container, Content, Item,Input,View, Button, Title, Card, Textarea } fr
 import Headers from '../Shared/Header/Headers';
 import SignupStyle from './SignupStyle'
 import Global from '../../constants/Global';
+import { Notifications } from 'expo';
+import * as Permissions from 'expo-permissions';
 export default class SignUP extends React.Component{
 
   constructor(props) {
@@ -47,7 +49,7 @@ export default class SignUP extends React.Component{
    
   }
 
-  checkValidation()
+ async checkValidation()
   {
     const {name,companyname,email,address    } = this.state;
 
@@ -92,8 +94,14 @@ export default class SignUP extends React.Component{
       }
       else
       {
-        data={name:name,email:email,company:companyname,address:address};
-        console.log("Data to save : ",data);
+      
+       
+      
+        // Get the token that uniquely identifies this device
+        let token = await Notifications.getExpoPushTokenAsync();
+        data={name:name,email:email,company:companyname,address:address,"notification":token};
+        
+        // console.log("Data to save : ",data);
         this.setData(data);
       }
   }
@@ -112,7 +120,7 @@ export default class SignUP extends React.Component{
           console.log('no internet ');
          
         
-          SnackBar.show('No Internet..', { isStatic: true,position: 'top' },)
+          SnackBar.show('No Internet.. Connection. Make sure that Wi-Fi or mobile data is turned on, then try again', {  duration: 8000 ,position: 'top' } ,)
           this.setState({isLoading:false})
           return null;
         }else{       
@@ -136,6 +144,7 @@ export default class SignUP extends React.Component{
                 {
                     await AsyncStorage.setItem('token',data.token);
                     await AsyncStorage.setItem('user',JSON.stringify(data));
+                    this.props.navigation.navigate('Check');
                     
                 } catch (error) {
                   console.warn("Error in Signup : ",error);
@@ -174,7 +183,7 @@ export default class SignUP extends React.Component{
             return (
                
                 <Container>
-                    <Headers/>
+                    <Headers title="Register"/>
                      <Content> 
                      <Card  style={SignupStyle.card}>
                       <KeyboardAvoidingView  behavior="padding" enabled>

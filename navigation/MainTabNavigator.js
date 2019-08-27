@@ -6,6 +6,7 @@ import TabBarIcon from '../components/TabBarIcon';
 import HomeScreen from '../screens/Home/HomeScreen';
 import RequestScreen from '../screens/RequestScreen';
 import DocScreen from '../screens/Document/DocScreen';
+import DocumentView from '../screens/Shared/DocumentView/DocumentView';
 
 const config = Platform.select({
   web: { headerMode: 'screen' },
@@ -15,6 +16,7 @@ const config = Platform.select({
 const HomeStack = createStackNavigator(
   {
     Home: HomeScreen,
+    DocumentView:DocumentView
   },
   config
 );
@@ -38,6 +40,7 @@ HomeStack.path = '';
 const LinksStack = createStackNavigator(
   {
     Document: DocScreen,
+    DocumentView:DocumentView
   },
   config
 );

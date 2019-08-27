@@ -11,6 +11,9 @@ import {
   NetInfo
 } from 'react-native';
 
+import * as Permissions from 'expo-permissions';
+import { Notifications } from 'expo';
+
 import { Container, Content, Card, Item,Picker,Form,Icon,Button,Title, CardItem, Left, Right, Body } from 'native-base';
 import Headers from '../Shared/Header/Headers';
 import HomeStyle from './HomeStyle';
@@ -36,7 +39,29 @@ export default class HomeScreen extends React.Component {
     header: null
   }
 
-  
+  async componentDidMount()
+    {
+      const { status: existingStatus } = await Permissions.getAsync(
+        Permissions.NOTIFICATIONS
+      );
+      let finalStatus = existingStatus;
+    
+      // only ask if permissions have not already been determined, because
+      // iOS won't necessarily prompt the user a second time.
+      if (existingStatus !== 'granted') {
+        // Android remote notification permissions are granted during the app
+        // install, so this will only ask on iOS
+        const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+        finalStatus = status;
+      }
+    
+      // Stop here if the user did not grant permissions
+      if (finalStatus === 'granted') {
+      
+      }
+     
+    }
+    
   async _onDocument()
     {
 
@@ -57,6 +82,7 @@ export default class HomeScreen extends React.Component {
               // console.log("Temp : ",temp)
               this.setState({documentUploadArray:temp});
               this.render();
+              // this.props.navigation.navigate('DocumentView',{ type:'application/*', uri, name, size })
 
 
             }
@@ -91,40 +117,42 @@ export default class HomeScreen extends React.Component {
      console.log("Item ",item);
      return(<CardItem>
               <Left>
-                <Text>{item.doc.name}</Text>
+              <Text style={{fontSize:15,textTransform:'uppercase'}}><Icon name={"ios-document"}  />{" "+item.doc.name}</Text>
+              
               </Left>
-              <Body>
-              <Text>{item.type}</Text>
-              </Body>
+              
+             
+              
               <Right>
-              <Button block style={HomeStyle.btn} onPress={()=>{this._remove(item)}}><Title>REMOVE</Title></Button>
+              <Button transparent block  onPress={()=>{this._remove(item)}}><Icon name="close" style={{fontSize:20,color:'#000000'}} /><Title style={{fontSize:10,color:'#000000'}}></Title></Button>
               </Right>
            </CardItem>)
    }
 
   async _upload()
    {
-        try {
-          let user = await AsyncStorage.getItem('user');
-          if(user!=null){
-
-          this.state.documentUploadArray.forEach(async element => {
-
-              // console.log("Element",element);
-              await  this. _httpUpload(element,JSON.parse(user));
-           
-           
-
-          });
-        }
-        else
+      try 
         {
-          console.log("USer not found : ",user)
-        }
+            let user = await AsyncStorage.getItem('user');
+            if(user!=null)
+            {
 
-        } catch (error) {
-          
-        }
+              this.state.documentUploadArray.forEach(async element => {
+
+                 await  this. _httpUpload(element,JSON.parse(user));
+
+                });
+            }
+            else
+            {
+              console.log("USer not found : ",user)
+            }
+
+          } 
+          catch (error) 
+          {
+            
+          }
         
 
    }
@@ -145,11 +173,12 @@ export default class HomeScreen extends React.Component {
             console.log('no internet ');
            
           
-            SnackBar.show('No Internet..', { isStatic: true,position: 'top' },)
+             SnackBar.show('No Internet.. Connection. Make sure that Wi-Fi or mobile data is turned on, then try again', {  duration: 8000 ,position: 'top' } ,)
+         
             this.setState({isLoading:false})
             return null;
           }else{       
-            console.log("Data to hit the saerver With DAta  ",fv);
+           
            return fetch(Global.API_URL+'document-upload', {
               method: 'POST',
               headers: {
@@ -163,8 +192,9 @@ export default class HomeScreen extends React.Component {
               .then((response) =>response.json() )   
               .then(async (responseJson) => {
               
-                console.log("Data",responseJson)
-                if(responseJson.success){
+               
+                if(responseJson.success)
+                {
                   this._remove(data);
                 
                 
@@ -202,7 +232,7 @@ export default class HomeScreen extends React.Component {
   
   render()
   {
-    console.log("Reender");
+    
     const {documentUploadArray} = this.state
     let serviceItems = this.state.documentArray.map( (s, i) => {
       return <Picker.Item key={i} value={s.value} label={s.label} />
@@ -210,18 +240,18 @@ export default class HomeScreen extends React.Component {
 
     return (
      <Container>
-      <Headers/>
+      <Headers title="Document Upload"/>
       <Content>
         <Card style={HomeStyle.card}>
          
           <Form>
-             <Picker
+              <Picker
                     selectedValue={this.state.selected}
                     onValueChange={ (service) => ( this.setState({selected:service}) ) } >
                      <Picker.Item key={'-1'} value={""} label={"Select Document"} />
                     {serviceItems}
 
-                </Picker>
+              </Picker>
                 {this.state.selected!=0 && (
                 <Button block style={HomeStyle.btn} onPress={()=>{this._onDocument()}}><Icon name={"ios-attach"} /><Title>ADD</Title></Button>)}
                     

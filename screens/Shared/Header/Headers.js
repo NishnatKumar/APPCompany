@@ -17,7 +17,7 @@ export default class Headers extends React.Component
             <View>
                  <StatusBar
                             backgroundColor={Layout.color.primaryColor}
-                            barStyle="default"
+                            barStyle="light-content"
                         />
                 {/* doc */}
                

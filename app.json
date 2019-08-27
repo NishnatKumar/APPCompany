@@ -11,10 +11,12 @@
     ],
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/icon1.png",
     "splash": {
      "resizeMode": "contain",
-      "backgroundColor": "#F25E00"
+      "backgroundColor": "#F25E00",
+      "image":"./assets/images/splash.png"
+     
     },
     "updates": {
       "fallbackToCacheTimeout": 0
@@ -26,7 +28,7 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.depixed.company"
+      "package": "com.depixed.DocUpload"
     
     },
     "androidStatusBar": {
@@ -35,6 +37,18 @@
   
     
       "backgroundColor": "#F25E00"
+    },
+    "notification": {
+    
+      "icon":"./assets/icon1.png",
+  
+     
+      "color":"#F25E00",
+  
+     
+      "androidMode":"default",
+  
+      "androidCollapsedTitle":"Document Upload "
     }
     
   }

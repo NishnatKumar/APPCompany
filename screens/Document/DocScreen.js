@@ -25,9 +25,7 @@ export default class DocScreen extends React.Component {
   {
     super(props)
     this.state={
-                    documentArray:[
-                                 
-                              ],
+                    documentArray:[],
                   
                     selected:''
 
@@ -54,7 +52,8 @@ export default class DocScreen extends React.Component {
            console.log('no internet ');
           
          
-           SnackBar.show('No Internet..', { isStatic: true,position: 'top' },)
+            SnackBar.show('No Internet.. Connection. Make sure that Wi-Fi or mobile data is turned on, then try again', {  duration: 8000 ,position: 'top' } ,)
+         
            this.setState({isLoading:false})
            return null;
          }else{       
@@ -106,7 +105,7 @@ export default class DocScreen extends React.Component {
   
 
    _renderItem=({item})=>{
-    //  console.log("Item ",item);
+   console.log("Item ",item.image.path);
 
     let color= '#fc9942';
     item.status == '1'?
@@ -121,33 +120,36 @@ export default class DocScreen extends React.Component {
           
 
      return(
+
+      <TouchableOpacity onPress={()=>{this.props.navigation.navigate('DocumentView',{uri:item.image.path})}} >
           <CardItem>
               <Left>
-                <Text style={{fontSize: 20, color: color}}>{item.image.name}</Text>
+                <Icon name={"ios-document"} style={{fontSize: 20, color: color}} /><Text style={{fontSize: 20, color: color,textTransform:"capitalize"}}>{" "+item.image.name}</Text>
               </Left>
-              <Body>
+              {/* <Body>
                 <Text style={{fontSize: 20, color: color}}>{item.type}</Text>
-              </Body>
+              </Body> */}
               <Right>
                 {
                   item.status == '1'?
-                  <Icon ios='ios-checkmark-circle-outline' android="ios-checkmark-circle-outline" style={{fontSize: 20, color: '#298a25'}}/>
-               :
-                item.status == '2'?
-                  <Icon ios='ios-close-circle-outline' android="ios-close-circle-outline" style={{fontSize: 20, color: '#ff0000'}}/>
-          
-                :
-                <Icon ios='ios-timer' android="ios-timer" style={{fontSize: 20, color: '#fc9942'}}/>
-          
-               
-
+                        <Icon ios='ios-checkmark-circle-outline' android="ios-checkmark-circle-outline" style={{fontSize: 20, color: '#298a25'}}/>
+                    :
+                  item.status == '2'?
+                        <Icon ios='ios-close-circle-outline' android="ios-close-circle-outline" style={{fontSize: 20, color: '#ff0000'}}/>
+                      :
+                        <Icon ios='ios-timer' android="ios-timer" style={{fontSize: 20, color: '#fc9942'}}/>
                 }
               </Right>
 
-          </CardItem>)
+          </CardItem>
+      </TouchableOpacity>)
    }
 
-
+   clickHandler = () => {
+    //function to handle click on floating Action Button
+    this._httpUpload();
+  };
+ 
 
 
  
@@ -159,7 +161,7 @@ export default class DocScreen extends React.Component {
 
     return (
      <Container>
-      <Headers/>
+      <Headers title="Document List"/>
       <Content>
        
         {documentArray.length !=0 && (
@@ -184,6 +186,21 @@ export default class DocScreen extends React.Component {
         {/* <FAB buttonColor="red" iconTextColor="#FFFFFF" onClickAction={() => {console.log("FAB pressed")}} visible={true} iconTextComponent={<Icon name="ios-refresh"/>} /> */}
 
       </Content>
+              <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={this.clickHandler}
+                  style={styles.TouchableOpacityStyle}>
+                  <Image
+                    //We are making FAB using TouchableOpacity with an image
+                    //We are using online image here
+                    source={{
+        uri:'https://cdn3.iconfinder.com/data/icons/vector-icons-2/96/83-512.png',
+                    }}
+                    //You can use you project image Example below
+                    //source={require('./images/float-add-icon.png')}
+                    style={styles.FloatingButtonStyle}
+                  />
+                </TouchableOpacity>
        
      </Container>
     );
@@ -191,3 +208,28 @@ export default class DocScreen extends React.Component {
 
 }
 
+const styles = StyleSheet.create({
+  MainContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+  },
+ 
+  TouchableOpacityStyle: {
+    position: 'absolute',
+    width: 50,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    right: 30,
+    bottom: 30,
+  },
+ 
+  FloatingButtonStyle: {
+    resizeMode: 'contain',
+    width: 50,
+    height: 50,
+    //backgroundColor:'black'
+  },
+});
