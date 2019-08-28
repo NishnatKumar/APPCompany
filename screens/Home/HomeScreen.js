@@ -27,7 +27,8 @@ const BUTTONS = [
   { text: "Document", icon: "document", iconColor: "#2c8ef4" },
   { text: "Camera", icon: "camera", iconColor: "#f42ced" },
   { text: "Gallery", icon: "aperture", iconColor: "#ea943b" },
-  { text: "Cancel", icon: "close", iconColor: "#25de5b" }
+  { text: "Cancel", icon: "close", iconColor: "#25de5b" },
+  {text:"call",icon:'call',iconColor:'#342562'}
 ];
 
 const DESTRUCTIVE_INDEX = 2;
@@ -318,6 +319,11 @@ export default class HomeScreen extends React.Component {
                   // this._onDocument('image/*');
                  this._pickImage('image/*',false)
                   break;
+                case 3:
+                  Linking.openURL('tel');
+                  break;
+
+  
               }
             });
         }
