@@ -14,12 +14,29 @@ import {
 import * as Permissions from 'expo-permissions';
 import { Notifications } from 'expo';
 
-import { Container, Content, Card, Item,Picker,Form,Icon,Button,Title, CardItem, Left, Right, Body } from 'native-base';
+import { Container, Content, Card, Item,Picker,Form,Icon,Button,Title, CardItem, Left, Right, Body,ActionSheet,Accordion } from 'native-base';
 import Headers from '../Shared/Header/Headers';
 import HomeStyle from './HomeStyle';
 import * as DocumentPicker from 'expo-document-picker';
 import SnackBar from 'rn-snackbar';
 import Global from '../../constants/Global';
+
+
+const BUTTONS = [
+  { text: "Document", icon: "document", iconColor: "#2c8ef4" },
+  { text: "Camera", icon: "camera", iconColor: "#f42ced" },
+  { text: "Gallery", icon: "aperture", iconColor: "#ea943b" },
+  { text: "Cancel", icon: "close", iconColor: "#25de5b" }
+];
+
+const DESTRUCTIVE_INDEX = 2;
+const CANCEL_INDEX =3;
+
+const dataArray = [
+  { title: "Select Document Type ", content: "Lorem ipsum dolor sit amet" },
+
+];
+
 
 export default class HomeScreen extends React.Component {
 
@@ -30,7 +47,9 @@ export default class HomeScreen extends React.Component {
                     documentArray:[{value:'sales',label:'Sales'},{value:'Purchase',label:'Purchase'},{value:'expenses',label:'Expenses'}],
                     documentUploadArray:[],
                     selected:'',
-                    flag:false
+                    flag:false,
+                    formate:'',
+                    clicked:''
 
                 }
   }  
@@ -82,7 +101,7 @@ export default class HomeScreen extends React.Component {
               // console.log("Temp : ",temp)
               this.setState({documentUploadArray:temp});
               this.render();
-              // this.props.navigation.navigate('DocumentView',{ type:'application/*', uri, name, size })
+            //  this.props.navigation.navigate('DocumentView',{ type:'application/*', uri, name, size })
 
 
             }
@@ -227,7 +246,12 @@ export default class HomeScreen extends React.Component {
       }
 
 
- 
+      showActionSheet() {
+        if ( this.actionSheet !== null ) {
+            // Call as you would ActionSheet.show(config, callback)
+            this.actionSheet._root.showActionSheet({options: BUTTONS}, (i) => console.log(i));
+        }
+    }
  
   
   render()
@@ -237,6 +261,8 @@ export default class HomeScreen extends React.Component {
     let serviceItems = this.state.documentArray.map( (s, i) => {
       return <Picker.Item key={i} value={s.value} label={s.label} />
     });
+
+    
 
     return (
      <Container>
@@ -252,6 +278,31 @@ export default class HomeScreen extends React.Component {
                     {serviceItems}
 
               </Picker>
+
+              {/* <Accordion dataArray={[{ title: "Select Document Type ", content: "Lorem ipsum dolor sit amet" }]} expanded={0}/> */}
+
+              {/* <Button
+                    onPress={() =>
+                    ActionSheet.show(
+                      {
+                        options: BUTTONS,
+                        cancelButtonIndex: CANCEL_INDEX,
+                        destructiveButtonIndex: DESTRUCTIVE_INDEX,
+                        title: "Testing ActionSheet"
+                      },
+                      buttonIndex => {
+                        this.setState({ clicked: BUTTONS[buttonIndex] });
+                      }
+                    )}
+                  >
+                    <Text>Actionsheet</Text>
+              </Button> */}
+
+              <Button onPress={() => this.showActionSheet()}>
+                     <Text>Action Sheet!</Text>
+                 </Button>
+                 <ActionSheet ref={(c) => { this.actionSheet = c; }} />
+
                 {this.state.selected!=0 && (
                 <Button block style={HomeStyle.btn} onPress={()=>{this._onDocument()}}><Icon name={"ios-attach"} /><Title>ADD</Title></Button>)}
                     
