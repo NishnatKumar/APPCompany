@@ -14,12 +14,13 @@ import {
 import * as Permissions from 'expo-permissions';
 import { Notifications } from 'expo';
 
-import { Container, Content, Card, Item,Picker,Form,Icon,Button,Title, CardItem, Left, Right, Body,ActionSheet,Accordion } from 'native-base';
+import { Container, Content, Card, Item,Picker,Form,Icon,Button,Title, CardItem, Left, Right, Body,ActionSheet,Accordion,Subtitle } from 'native-base';
 import Headers from '../Shared/Header/Headers';
 import HomeStyle from './HomeStyle';
 import * as DocumentPicker from 'expo-document-picker';
 import SnackBar from 'rn-snackbar';
 import Global from '../../constants/Global';
+import * as ImagePicker from 'expo-image-picker';
 
 
 const BUTTONS = [
@@ -48,7 +49,7 @@ export default class HomeScreen extends React.Component {
                     documentUploadArray:[],
                     selected:'',
                     flag:false,
-                    formate:'',
+                    formate:null,
                     clicked:''
 
                 }
@@ -61,7 +62,8 @@ export default class HomeScreen extends React.Component {
   async componentDidMount()
     {
       const { status: existingStatus } = await Permissions.getAsync(
-        Permissions.NOTIFICATIONS
+        Permissions.NOTIFICATIONS,
+        Permissions.CAMERA_ROLL
       );
       let finalStatus = existingStatus;
     
@@ -70,7 +72,8 @@ export default class HomeScreen extends React.Component {
       if (existingStatus !== 'granted') {
         // Android remote notification permissions are granted during the app
         // install, so this will only ask on iOS
-        const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+        const { status } = await Permissions.askAsync(
+          Permissions.NOTIFICATIONS,Permissions.CAMERA_ROLL);
         finalStatus = status;
       }
     
@@ -81,12 +84,14 @@ export default class HomeScreen extends React.Component {
      
     }
     
-  async _onDocument()
+  
+  async _onDocument(formate)
     {
-
+    
+      console.log("Format selected : ",formate)
       try {
 
-          const { type, uri, name, size } =await DocumentPicker.getDocumentAsync({type:'application/*',copyToCacheDirectory:true});
+          const { type, uri, name, size } =await DocumentPicker.getDocumentAsync({type:formate,copyToCacheDirectory:true});
 
             let temp = this.state.documentUploadArray;
             let Doctype = this.state.selected;
@@ -97,7 +102,7 @@ export default class HomeScreen extends React.Component {
               let type = name.split(".");
               type = type[type.length-1]
               
-              temp.push({doc:{ type:'application/*', uri, name, size },type:Doctype,index:temp.length});
+              temp.push({doc:{ type:formate, uri, name, size },type:Doctype,index:temp.length,formate});
               // console.log("Temp : ",temp)
               this.setState({documentUploadArray:temp});
               this.render();
@@ -116,7 +121,45 @@ export default class HomeScreen extends React.Component {
         }
         
     }
-    
+ 
+
+
+   
+  /**Image picker */
+  async  _pickImage(formate,flag){
+    console.log("in image picker");
+    let result;
+    if(!flag)
+     result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        aspect: [4, 3],
+      });
+    else
+     result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: false,
+      aspect: [4, 3],
+    });
+
+    console.log(result);
+     let temp = this.state.documentUploadArray;
+    let Doctype = this.state.selected;
+
+    if (!result.cancelled) {
+      this.setState({ image: result });
+      const {uri} = result
+        let name =uri.split('ImagePicker')[1].replace("/","");
+        console.log("NAme : ",name);
+        temp.push({doc:{ type:formate, uri,name},type:Doctype,index:temp.length,formate});
+         this.setState({documentUploadArray:temp});
+        this.render();
+    }
+    else{
+      console.log("Pic selection cancel ");
+    }
+  }
+
   _remove =async (item)=>{
     
       // console.log("Item to remove : ",item);
@@ -133,12 +176,19 @@ export default class HomeScreen extends React.Component {
   }
 
    _renderItem=({item})=>{
-     console.log("Item ",item);
+   
      return(<CardItem>
-              <Left>
-              <Text style={{fontSize:15,textTransform:'uppercase'}}><Icon name={"ios-document"}  />{" "+item.doc.name}</Text>
-              
+              <Left >
+                <View style={{width:25, marginLeft:2 }}>
+                  <Text style={{fontSize:15,textTransform:'uppercase'}}><Icon name={"ios-document"}  /></Text>
+                </View>
+                 <View>
+                  <Title style={{color:'#000000'}}>{item.doc.name}</Title>
+                  <Subtitle style={{color:'#838584'}}>{item.type}</Subtitle>
+                </View>
+
               </Left>
+             
               
              
               
@@ -185,6 +235,8 @@ export default class HomeScreen extends React.Component {
         fv.append('type',data.type+"");
         fv.append('document',data.doc);
         fv.append('userID',user.id);
+
+        console.log("FV VALUE : ",fv);
 
         NetInfo.getConnectionInfo().then((connectionInfo) => {
           this.setState({isLoading:true})
@@ -249,7 +301,25 @@ export default class HomeScreen extends React.Component {
       showActionSheet() {
         if ( this.actionSheet !== null ) {
             // Call as you would ActionSheet.show(config, callback)
-            this.actionSheet._root.showActionSheet({options: BUTTONS}, (i) => console.log(i));
+            this.actionSheet._root.showActionSheet({options: BUTTONS}, (i) =>{
+              switch(i)
+              {
+                case 0:
+                  this.setState({formate:'application'});
+                  this._onDocument('application/*');
+                  break;
+                 case 1:
+                  this.setState({formate:'image'});
+                  // this._onDocument('image/*');
+                 this._pickImage('image/*',true)
+                  break;
+                case 2:
+                  this.setState({formate:'image'});
+                  // this._onDocument('image/*');
+                 this._pickImage('image/*',false)
+                  break;
+              }
+            });
         }
     }
  
@@ -298,13 +368,10 @@ export default class HomeScreen extends React.Component {
                     <Text>Actionsheet</Text>
               </Button> */}
 
-              <Button onPress={() => this.showActionSheet()}>
-                     <Text>Action Sheet!</Text>
-                 </Button>
-                 <ActionSheet ref={(c) => { this.actionSheet = c; }} />
+                <ActionSheet ref={(c) => { this.actionSheet = c; }} />
 
                 {this.state.selected!=0 && (
-                <Button block style={HomeStyle.btn} onPress={()=>{this._onDocument()}}><Icon name={"ios-attach"} /><Title>ADD</Title></Button>)}
+                <Button block style={HomeStyle.btn} onPress={() => this.showActionSheet()}><Icon name={"ios-attach"} /><Title>ADD</Title></Button>)}
                     
            
           </Form>

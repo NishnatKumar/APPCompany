@@ -98,7 +98,12 @@ export default class SignUP extends React.Component{
        
       
         // Get the token that uniquely identifies this device
-        let token = await Notifications.getExpoPushTokenAsync();
+        let token; // = await Notifications.getExpoPushTokenAsync();
+        try {
+          token = await Notifications.getExpoPushTokenAsync();
+        } catch (error) {
+          console.log("Error on thi8s value : ",error)
+        }
         data={name:name,email:email,company:companyname,address:address,"notification":token};
         
         // console.log("Data to save : ",data);
@@ -109,9 +114,6 @@ export default class SignUP extends React.Component{
 
 
   /**Http fetch */
-
-
-
    async setData(data)
     {
       NetInfo.getConnectionInfo().then((connectionInfo) => {

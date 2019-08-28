@@ -151,7 +151,18 @@ export default class DocScreen extends React.Component {
   };
  
 
-
+ renderSeparator = () => {
+    return (
+      <View
+        style={{
+          height: 1,
+          width: "86%",
+          backgroundColor: "#CED0CE",
+          marginLeft: "14%"
+        }}
+      />
+    );
+  };
  
  
   
@@ -174,6 +185,7 @@ export default class DocScreen extends React.Component {
             extraData={this.state.documentUploadArray}
             onRefresh={()=>{this._httpUpload()}}
             refreshing={this.state.isLoading}
+            ItemSeparatorComponent={this.renderSeparator}
             // refreshControl={ <RefreshControl
             //                     refreshing={this.state.isLoading}
             //                     onRefresh={this._httpUpload}

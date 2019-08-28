@@ -20,6 +20,7 @@
     "expo-constants": "6.0.0",
     "expo-document-picker": "^6.0.0",
     "expo-font": "~6.0.0",
+    "expo-image-picker": "~6.0.0",
     "expo-web-browser": "6.0.0",
     "native-base": "^2.13.4",
     "react": "16.8.3",
